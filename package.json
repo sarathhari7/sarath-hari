@@ -1,0 +1,19 @@
+{
+  "name": "personal-dashboard",
+  "version": "1.0.0",
+  "description": "Personal Dashboard with React frontend and Node.js backend with Firebase",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently \"npm run server:dev\" \"npm run client\"",
+    "server:dev": "cd server && npm run dev"
+  },
+  "keywords": ["dashboard", "todo", "react", "node", "firebase"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
