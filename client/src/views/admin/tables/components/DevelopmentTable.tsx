@@ -22,6 +22,8 @@ type RowObj = {
   progress: number;
 };
 
+const columnHelper = createColumnHelper<RowObj>();
+
 function CheckTable(props: { tableData: any }) {
   const { tableData } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -201,4 +203,3 @@ function CheckTable(props: { tableData: any }) {
 }
 
 export default CheckTable;
-const columnHelper = createColumnHelper<RowObj>();

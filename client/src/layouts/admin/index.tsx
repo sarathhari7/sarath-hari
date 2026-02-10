@@ -9,7 +9,7 @@ export default function Admin(props: { [x: string]: any }) {
   const { ...rest } = props;
   const location = useLocation();
   const [open, setOpen] = React.useState(true);
-  const [currentRoute, setCurrentRoute] = React.useState("Main Dashboard");
+  const [currentRoute, setCurrentRoute] = React.useState("Profile");
 
   React.useEffect(() => {
     window.addEventListener("resize", () =>
@@ -21,7 +21,7 @@ export default function Admin(props: { [x: string]: any }) {
   }, [location.pathname]);
 
   const getActiveRoute = (routes: RoutesType[]): string | boolean => {
-    let activeRoute = "Main Dashboard";
+    let activeRoute = "Profile";
     for (let i = 0; i < routes.length; i++) {
       if (
         window.location.href.indexOf(

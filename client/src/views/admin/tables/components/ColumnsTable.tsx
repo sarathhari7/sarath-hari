@@ -18,6 +18,8 @@ type RowObj = {
   date: string;
 };
 
+const columnHelper = createColumnHelper<RowObj>();
+
 function ColumnsTable(props: { tableData: any }) {
   const { tableData } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -153,4 +155,3 @@ function ColumnsTable(props: { tableData: any }) {
 }
 
 export default ColumnsTable;
-const columnHelper = createColumnHelper<RowObj>();
