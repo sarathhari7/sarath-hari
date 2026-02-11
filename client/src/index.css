@@ -5,6 +5,53 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 165 11% 92%;
+    --foreground: 207 79% 14%;
+    --card: 165 11% 92%;
+    --card-foreground: 207 79% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 207 79% 14%;
+    --primary: 183 78% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 193 74% 37%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 165 11% 92%;
+    --muted-foreground: 193 74% 25%;
+    --accent: 183 78% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 165 11% 82%;
+    --input: 165 11% 82%;
+    --ring: 183 78% 42%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 207 79% 14%;
+    --foreground: 165 11% 92%;
+    --card: 207 79% 14%;
+    --card-foreground: 165 11% 92%;
+    --popover: 207 79% 14%;
+    --popover-foreground: 165 11% 92%;
+    --primary: 183 78% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 193 74% 37%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 207 79% 20%;
+    --muted-foreground: 165 11% 70%;
+    --accent: 183 78% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 165 11% 92%;
+    --border: 207 79% 20%;
+    --input: 207 79% 20%;
+    --ring: 183 78% 52%;
+  }
+}
+
+@layer base {
 	html {
 		font-family: 'DM Sans', sans-serif !important;
 		font-feature-settings: 'kern' !important;

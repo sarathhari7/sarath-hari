@@ -47,6 +47,7 @@
     "downlevelIteration": true,
     "baseUrl": "src",
     "paths": {
+      "@/*": ["./*"],
       "@assets/*": ["./src/assetsassets/*"]
     },
   },

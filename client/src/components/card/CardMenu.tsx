@@ -1,10 +1,7 @@
 import React from "react";
 import Dropdown from "components/dropdown";
-import { AiOutlineUser } from "react-icons/ai";
 import { BsThreeDots } from "react-icons/bs";
-import { FiSettings } from "react-icons/fi";
-import { AiOutlineShop } from "react-icons/ai";
-import { TiLightbulb } from "react-icons/ti";
+import { MdCalendarToday, MdHistory } from "react-icons/md";
 
 function CardMenu(props: { transparent?: boolean }) {
   const { transparent } = props;
@@ -29,27 +26,15 @@ function CardMenu(props: { transparent?: boolean }) {
         <div className="z-50 w-max rounded-xl bg-white py-3 px-4 text-sm shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:shadow-none">
           <p className="hover:text-black flex cursor-pointer items-center gap-2 text-gray-600 hover:font-medium">
             <span>
-              <AiOutlineUser />
+              <MdCalendarToday />
             </span>
-            Panel 1
+            Current Month
           </p>
           <p className="hover:text-black mt-2 flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
             <span>
-              <AiOutlineShop />
+              <MdHistory />
             </span>
-            Panel 2
-          </p>
-          <p className="hover:text-black mt-2 flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
-            <span>
-              <TiLightbulb />
-            </span>
-            Panel 3
-          </p>
-          <p className="hover:text-black mt-2 flex cursor-pointer items-center gap-2 pt-1 text-gray-600 hover:font-medium">
-            <span>
-              <FiSettings />
-            </span>
-            Panel 4
+            Last Month
           </p>
         </div>
       }

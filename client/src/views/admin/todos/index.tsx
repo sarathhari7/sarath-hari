@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Card from "components/card";
 import { MdAdd, MdDelete, MdEdit, MdCheckCircle, MdRadioButtonUnchecked } from "react-icons/md";
+import TaskCard from "views/admin/default/components/TaskCard";
 
 interface Todo {
   id: string;
@@ -152,6 +153,11 @@ const Todos = () => {
           <MdAdd className="h-5 w-5" />
           Add Todo
         </button>
+      </div>
+
+      {/* Quick Tasks Section */}
+      <div className="mb-5">
+        <TaskCard />
       </div>
 
       {/* Todos Grid */}

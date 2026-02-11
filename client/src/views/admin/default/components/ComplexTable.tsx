@@ -2,7 +2,6 @@ import React from "react";
 import CardMenu from "components/card/CardMenu";
 import Card from "components/card";
 import Progress from "components/progress";
-import { MdCancel, MdCheckCircle, MdOutlineError } from "react-icons/md";
 
 import {
   createColumnHelper,
@@ -14,24 +13,41 @@ import {
 } from "@tanstack/react-table";
 
 type RowObj = {
-  name: string;
-  status: string;
-  date: string;
-  progress: number;
+  source: string;
+  category: 'Income' | 'Expense' | 'Savings';
+  purpose: string;
+  target?: number;
+  currentAmount?: number;
+  stepupDate?: string;
+  stepupAmount?: number;
+  dueDate: string;
+  expectedAmount?: number;
+  amount: number;
 };
 
 const columnHelper = createColumnHelper<RowObj>();
 
-// const columns = columnsDataCheck;
-export default function ComplexTable(props: { tableData: any }) {
-  const { tableData } = props;
+export default function ComplexTable(props: {
+  tableData: any;
+  viewMode: 'current' | 'final';
+  setViewMode: (mode: 'current' | 'final') => void;
+}) {
+  const { tableData, viewMode, setViewMode } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  let defaultData = tableData;
+
+  const today = new Date().getDate();
+
+  const [data, setData] = React.useState(() => [...tableData]);
+
+  React.useEffect(() => {
+    setData(tableData);
+  }, [tableData]);
+
   const columns = [
-    columnHelper.accessor("name", {
-      id: "name",
+    columnHelper.accessor("source", {
+      id: "source",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">NAME</p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">SOURCE</p>
       ),
       cell: (info) => (
         <p className="text-sm font-bold text-navy-700 dark:text-white">
@@ -39,54 +55,155 @@ export default function ComplexTable(props: { tableData: any }) {
         </p>
       ),
     }),
-    columnHelper.accessor("status", {
-      id: "status",
+    columnHelper.accessor("category", {
+      id: "category",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">
-          STATUS
-        </p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">CATEGORY</p>
+      ),
+      cell: (info) => {
+        const category = info.getValue();
+        const getBadgeClass = () => {
+          switch(category) {
+            case 'Income':
+              return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+            case 'Expense':
+              return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+            case 'Savings':
+              return 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300';
+            default:
+              return 'bg-gray-100 text-gray-700';
+          }
+        };
+        return (
+          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getBadgeClass()}`}>
+            {category}
+          </span>
+        );
+      },
+    }),
+    columnHelper.accessor("purpose", {
+      id: "purpose",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">PURPOSE</p>
       ),
       cell: (info) => (
-        <div className="flex items-center">
-          {info.getValue() === "Approved" ? (
-            <MdCheckCircle className="text-green-500 me-1 dark:text-green-300" />
-          ) : info.getValue() === "Disable" ? (
-            <MdCancel className="text-red-500 me-1 dark:text-red-300" />
-          ) : info.getValue() === "Error" ? (
-            <MdOutlineError className="text-amber-500 me-1 dark:text-amber-300" />
-          ) : null}
-          <p className="text-sm font-bold text-navy-700 dark:text-white">
-            {info.getValue()}
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+    columnHelper.accessor("target", {
+      id: "target",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">TARGET</p>
+      ),
+      cell: (info) => {
+        const row = info.row.original;
+        if (!row.target) return <span className="text-xs text-gray-400">-</span>;
+
+        const progress = ((row.currentAmount || 0) / row.target) * 100;
+        return (
+          <div className="flex flex-col gap-1">
+            <Progress width="w-[120px]" value={progress} />
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              ₹{(row.currentAmount || 0).toLocaleString('en-IN')} / ₹{row.target.toLocaleString('en-IN')}
+            </p>
+          </div>
+        );
+      },
+    }),
+    columnHelper.accessor("stepupDate", {
+      id: "stepupDate",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">STEPUP</p>
+      ),
+      cell: (info) => {
+        const row = info.row.original;
+        if (!row.stepupDate) return <span className="text-xs text-gray-400">-</span>;
+        return (
+          <div className="flex flex-col">
+            <p className="text-sm font-semibold text-navy-700 dark:text-white">{row.stepupDate}</p>
+            {row.stepupAmount && (
+              <p className="text-xs text-brand-500">+₹{row.stepupAmount}</p>
+            )}
+          </div>
+        );
+      },
+    }),
+    columnHelper.accessor("dueDate", {
+      id: "dueDate",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">DUE DATE</p>
+      ),
+      cell: (info) => (
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+    columnHelper.accessor("expectedAmount", {
+      id: "expectedAmount",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">EXPECTED</p>
+      ),
+      cell: (info) => {
+        const expected = info.getValue();
+        if (!expected) return <span className="text-xs text-gray-400">-</span>;
+        return (
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            ₹{expected.toLocaleString('en-IN')}
           </p>
-        </div>
-      ),
+        );
+      },
     }),
-    columnHelper.accessor("date", {
-      id: "date",
+    columnHelper.accessor("amount", {
+      id: "amount",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">DATE</p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">ACTUAL</p>
       ),
-      cell: (info) => (
-        <p className="text-sm font-bold text-navy-700 dark:text-white">
-          {info.getValue()}
-        </p>
-      ),
+      cell: (info) => {
+        const row = info.row.original;
+        const actual = info.getValue();
+        const expected = row.expectedAmount;
+        const isPast = parseInt(row.dueDate) <= today;
+
+        // Show amount only if in Final mode or if due date has passed
+        const shouldShowAmount = viewMode === 'final' || isPast;
+
+        if (!shouldShowAmount) {
+          return <span className="text-xs text-gray-400">Pending</span>;
+        }
+
+        // Determine color based on variance
+        let colorClass = 'text-navy-700 dark:text-white';
+        if (expected) {
+          if (row.category === 'Income' && actual > expected) {
+            colorClass = 'text-green-600 dark:text-green-400'; // Higher income is good
+          } else if (row.category === 'Income' && actual < expected) {
+            colorClass = 'text-red-600 dark:text-red-400'; // Lower income is bad
+          } else if ((row.category === 'Expense' || row.category === 'Savings') && actual > expected) {
+            colorClass = 'text-red-600 dark:text-red-400'; // Higher expense/savings is bad (overspend)
+          } else if ((row.category === 'Expense' || row.category === 'Savings') && actual < expected) {
+            colorClass = 'text-green-600 dark:text-green-400'; // Lower expense is good (saved money)
+          }
+        }
+
+        return (
+          <div className="flex flex-col">
+            <p className={`text-sm font-bold ${colorClass}`}>
+              ₹{actual.toLocaleString('en-IN')}
+            </p>
+            {expected && actual !== expected && (
+              <p className={`text-xs ${colorClass}`}>
+                {actual > expected ? '+' : ''}{(actual - expected).toLocaleString('en-IN')}
+              </p>
+            )}
+          </div>
+        );
+      },
     }),
-    columnHelper.accessor("progress", {
-      id: "progress",
-      header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">
-          PROGRESS
-        </p>
-      ),
-      cell: (info) => (
-        <div className="flex items-center">
-          <Progress width="w-[108px]" value={info.getValue()} />
-        </div>
-      ),
-    }),
-  ]; // eslint-disable-next-line
-  const [data, setData] = React.useState(() => [...defaultData]);
+  ];
+
   const table = useReactTable({
     data,
     columns,
@@ -98,16 +215,66 @@ export default function ComplexTable(props: { tableData: any }) {
     getSortedRowModel: getSortedRowModel(),
     debugTable: true,
   });
+
+  // Calculate totals based on view mode
+  const calculateTotals = () => {
+    let totalIncome = 0;
+    let totalExpense = 0;
+    let totalSavings = 0;
+
+    tableData.forEach((row: RowObj) => {
+      const isPast = parseInt(row.dueDate) <= today;
+      const shouldInclude = viewMode === 'final' || isPast;
+
+      if (shouldInclude) {
+        if (row.category === 'Income') {
+          totalIncome += row.amount;
+        } else if (row.category === 'Expense') {
+          totalExpense += row.amount;
+        } else if (row.category === 'Savings') {
+          totalSavings += row.amount;
+        }
+      }
+    });
+
+    const balance = totalIncome - totalExpense - totalSavings;
+    return { totalIncome, totalExpense, totalSavings, balance };
+  };
+
+  const totals = calculateTotals();
+
   return (
     <Card extra={"w-full h-full px-6 pb-6 sm:overflow-x-auto"}>
       <div className="relative flex items-center justify-between pt-4">
         <div className="text-xl font-bold text-navy-700 dark:text-white">
-          Complex Table
+          Budget Transactions
         </div>
         <CardMenu />
       </div>
 
-      <div className="mt-8 overflow-x-scroll xl:overflow-x-hidden">
+      {/* View Mode Toggle */}
+      <div className="mt-4 flex items-center gap-3">
+        <span className="text-sm font-medium text-navy-700 dark:text-white">
+          Current
+        </span>
+        <button
+          onClick={() => setViewMode(viewMode === 'current' ? 'final' : 'current')}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+            viewMode === 'final' ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-600'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              viewMode === 'final' ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+        <span className="text-sm font-medium text-navy-700 dark:text-white">
+          Final
+        </span>
+      </div>
+
+      <div className="mt-6 overflow-x-scroll xl:overflow-x-hidden">
         <table className="w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -139,7 +306,7 @@ export default function ComplexTable(props: { tableData: any }) {
           <tbody>
             {table
               .getRowModel()
-              .rows.slice(0, 5)
+              .rows
               .map((row) => {
                 return (
                   <tr key={row.id}>
@@ -147,7 +314,7 @@ export default function ComplexTable(props: { tableData: any }) {
                       return (
                         <td
                           key={cell.id}
-                          className="min-w-[150px] border-white/0 py-3  pr-4"
+                          className="min-w-[120px] border-white/0 py-3 pr-4"
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
@@ -159,6 +326,37 @@ export default function ComplexTable(props: { tableData: any }) {
                   </tr>
                 );
               })}
+            {/* Totals Row */}
+            <tr className="border-t-2 border-gray-300 dark:border-gray-600">
+              <td colSpan={7} className="py-4 pr-4">
+                <div className="flex items-center justify-end gap-8 text-sm font-bold">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 dark:text-gray-400">Income:</span>
+                    <span className="text-green-600 dark:text-green-400">
+                      ₹{totals.totalIncome.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 dark:text-gray-400">Expense:</span>
+                    <span className="text-red-600 dark:text-red-400">
+                      ₹{totals.totalExpense.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 dark:text-gray-400">Savings:</span>
+                    <span className="text-brand-600 dark:text-brand-400">
+                      ₹{totals.totalSavings.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-lightPrimary px-4 py-2 dark:bg-navy-800">
+                    <span className="text-navy-700 dark:text-white">Balance:</span>
+                    <span className={`text-lg ${totals.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      ₹{totals.balance.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

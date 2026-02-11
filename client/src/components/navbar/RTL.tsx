@@ -2,15 +2,12 @@ import React from "react";
 import Dropdown from "components/dropdown";
 import { FiAlignJustify } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import navbarimage from "assets/img/layout/Navbar.png";
 import { BsArrowBarUp } from "react-icons/bs";
 import { FiSearch } from "react-icons/fi";
 import { RiMoonFill, RiSunFill } from "react-icons/ri";
-import {
-  IoMdNotificationsOutline,
-  IoMdInformationCircleOutline,
-} from "react-icons/io";
-import avatar from "assets/img/avatars/avatar4.png";
+import { IoMdNotificationsOutline } from "react-icons/io";
+import { MdCalendarToday } from "react-icons/md";
+import MiniCalendar from "components/calendar/MiniCalendar";
 
 const Navbar = (props: {
   onOpenSidenav: () => void;
@@ -118,6 +115,21 @@ const Navbar = (props: {
           }
           classNames={"py-2 top-4 -start-[230px] md:-start-[440px] w-max"}
         />
+        {/* start Calendar */}
+        <Dropdown
+          button={
+            <p className="cursor-pointer">
+              <MdCalendarToday className="h-4 w-4 text-gray-600 dark:text-white" />
+            </p>
+          }
+          animation="origin-[65%_0%] md:origin-top-start transition-all duration-300 ease-in-out"
+          children={
+            <div className="flex w-max flex-col gap-3 rounded-[20px] bg-white p-4 shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none">
+              <MiniCalendar />
+            </div>
+          }
+          classNames={"py-2 top-4 -start-[320px] md:-start-[320px] w-max"}
+        />
         <div
           className="cursor-pointer text-gray-600"
           onClick={() => {
@@ -139,18 +151,16 @@ const Navbar = (props: {
         {/* Profile & Dropdown */}
         <Dropdown
           button={
-            <img
-              className="h-10 w-10 rounded-full"
-              src={avatar}
-              alt="Elon Musk"
-            />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500">
+              <span className="text-sm font-bold text-white">SH</span>
+            </div>
           }
           children={
             <div className="flex h-48 w-56 flex-col justify-start rounded-[20px] bg-white bg-cover bg-no-repeat shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none">
               <div className="mt-3 ms-4">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-bold text-navy-700 dark:text-white">
-                    👋 Hey, Adela
+                    👋 Hey, Sarath Hari
                   </p>{" "}
                 </div>
               </div>
