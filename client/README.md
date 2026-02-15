@@ -1,103 +1,283 @@
-# [Horizon UI TailwindCSS React Typescript ⚡️](https://horizon-ui.com/horizon-tailwind-react-ts) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Check%20Horizon%20UI,%20the%20trendiest%20open-source%20admin%20template%20for%20%23tailwindcss%20and%20%23react!%0A%0Ahorizon-ui.com%20)
+# Personal Dashboard - Frontend
 
-![version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
-[![GitHub issues open](https://img.shields.io/github/issues/horizon-ui/horizon-tailwind-react-ts.svg?maxAge=2592000)](https://github.com/horizon-ui/horizon-tailwind-react-ts/issues?q=is%3Aopen+is%3Aissue)
+React TypeScript frontend for the Personal Dashboard application featuring Todo management and Budget tracking.
 
-<p>&nbsp;</p>
+## Features
 
-[<img alt="Horizon UI - Tailwind CSS React Admin dashboard template" src="https://i.ibb.co/1zhBQ2J/horizon-ui-tailwind-2.png" />](https://github.com/horizon-ui/horizon-tailwind-react-ts)
+- **Budget Tracking**: Track income, expenses, and savings with real-time calculations
+- **Todo Management**: Create, update, and manage your todos
+- **Calendar View**: Visual calendar for planning
+- **Recipe Book**: Browse recipes (placeholder feature)
+- **Profile Management**: User profile settings
+- **Dark Mode**: Toggle between light and dark themes
+- **Real-time Data**: Live updates from Firebase backend
 
-<p>&nbsp;</p>
+## Tech Stack
 
-Get started and build your dream web app with Horizon UI, the trendiest & innovative Open Source Admin Template for Tailwind CSS & React!
+- **React 19** with TypeScript
+- **shadcn/ui** with Radix UI primitives
+- **Tailwind CSS** for styling
+- **TanStack React Table** for data tables
+- **React Router** for navigation
+- **React Icons** for iconography
 
----
+## Prerequisites
 
-### Introduction
+- Node.js (v14 or higher)
+- npm or yarn
+- Backend API running on `http://localhost:9000`
 
-Designed for those who like modern UI elements and beautiful websites. Made of hundred of elements, designed blocks and fully coded pages, Horizon UI is ready to help you create stunning websites and webapps.
+## Installation
 
-Save hundreds of hours trying to create and develop a dashboard from scratch.
-The fastest, most responsive & trendiest dashboard for Tailwind CSS is here. Seriously.
-
-With Horizon UI you will find many examples for pages like NFTs Pages,
-Authentication Pages, Profile and so on. Just choose between a Basic Design or a cover and you are good to go!
-
-### 🎉 [NEW] Horizon UI Components
-
-All the main components from both versions, this will help you to see and interact with all & the latest added components of Horizon (also, new components are on the way, stay tuned)! ⚡️
-<a href="https://horizon-ui.com/components/?ref=readme-horizon-tailwind-react-ts" target="_blank">See all components</a>
-
-### Documentation
-
-Each element is well presented in a very complex documentation. You can read more about the <a href="https://horizon-ui.com/docs-tailwind/docs/react/installation?ref=readme-horizon-tailwind-react-ts" target="_blank">documentation here.</a>
-
-### Quick Start
-
-Install Horizon UI by running either of the following:
-
-- Install NodeJS LTS from [NodeJs Official Page](https://nodejs.org/en/?ref=horizon-documentation) (NOTE: Product only works with LTS version).
-
-Clone the repository with the following command:
-
+1. Install dependencies:
 ```bash
-git clone https://github.com/horizon-ui/horizon-tailwind-react-ts.git
-```
-
-Run in terminal this command:
-
-```bash
+cd client
 npm install
 ```
 
-Then run this command to start your local server
+2. Configure environment variables:
+```bash
+cp .env.example .env
+```
 
+Edit `.env` and set the API URL:
+```env
+REACT_APP_API_URL=http://localhost:9000
+```
+
+## Running the Application
+
+### Development Mode
 ```bash
 npm start
 ```
 
-### Example Pages
+The app will open at `http://localhost:9001`
 
-If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages. You will be able to quickly set up the basic structure for your web project.
+### Production Build
+```bash
+npm run build
+```
 
-View <a href="https://horizon-ui.com/horizon-tailwind-react-ts/?ref=readme-horizon-tailwind-react-ts" target="_blank">example pages here.</a>
+This creates an optimized production build in the `build/` folder.
 
-### Versions
+## Project Structure
 
-| Free Version                                                                                                                                             | PRO Version                                                                                                                                                       |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Horizon UI Tailwind CSS React](https://i.ibb.co/1zhBQ2J/horizon-ui-tailwind-2.png)](https://www.horizon-ui.com/?ref=readme-horizon-tailwind-react-ts) | [![Horizon UI Tailwind CSS React PRO](https://i.ibb.co/d0cVzKB/horizon-ui-pro-tailwind.png)](https://www.horizon-ui.com/pro?ref=readme-horizon-tailwind-react-ts) |
+```
+client/
+├── public/
+│   ├── index.html
+│   └── favicon.svg
+├── src/
+│   ├── assets/          # Images, fonts, static files
+│   ├── components/      # Reusable UI components
+│   │   ├── calendar/
+│   │   ├── card/
+│   │   ├── navbar/
+│   │   ├── sidebar/
+│   │   ├── ui/         # shadcn/ui components
+│   │   └── widget/
+│   ├── layouts/         # Layout components
+│   │   └── admin/
+│   ├── services/        # API service layer
+│   │   ├── api.ts
+│   │   └── budgetService.ts
+│   ├── views/           # Page components
+│   │   └── admin/
+│   │       ├── default/     # Budget Dashboard
+│   │       ├── marketplace/ # Recipe Book
+│   │       ├── profile/     # User Profile
+│   │       └── todos/       # Todo Management
+│   ├── App.tsx
+│   ├── index.tsx
+│   └── routes.tsx
+├── .env                # Environment variables (gitignored)
+├── .env.example        # Example environment file
+├── components.json     # shadcn/ui configuration
+├── package.json
+├── tailwind.config.js
+└── tsconfig.json
+```
 
-### Figma Version
+## Key Components
 
-Horizon UI is available in Figma format as well! Check it out on Figma
-Community! 🎨
-[See the Horizon UI Figma design files](https://bit.ly/horizon-figma)
+### Budget Dashboard (`/admin/default`)
+- **Summary Cards**: Display total income, expenses, savings, and balance
+- **Budget Table**: Comprehensive table with:
+  - Source, Category, Purpose, Target, Stepup, Due Date, Expected, Actual
+  - Current/Final toggle to view present vs projected end-of-month state
+  - Color-coded variance indicators
+  - Progress bars for SIP targets
+  - Totals row with aggregated values
 
-### Reporting Issues
+### Todo Management (`/admin/todos`)
+- Create, edit, and delete todos
+- Priority levels (Low, Medium, High)
+- Status tracking (Pending, In Progress, Completed)
+- Quick tasks section
 
-We use GitHub Issues as the official bug tracker for the Horizon UI. Here are
-some advices for our users that want to report an issue:
+### Calendar
+- Mini calendar component
+- Available in navbar dropdown
 
-1. Make sure that you are using the latest version of the Horizon UI Dashbaord.
-   Check the CHANGELOG from your dashboard on our
-   [CHANGE LOG File](https://github.com/horizon-ui/horizon-tailwind-react-ts/blob/main/CHANGELOG.md?ref=readme-horizon-tailwind-react-ts).
-2. Providing us reproducible steps for the issue will shorten the time it takes
-   for it to be fixed.
-3. Some issues may be browser specific, so specifying in what browser you
-   encountered the issue might help.
+## API Integration
 
----
+The frontend connects to the backend API for all data operations:
 
-### Community
+### Budget API Endpoints Used
+- `GET /api/budget` - Fetch all transactions
+- `GET /api/budget/summary` - Get totals
+- `GET /api/budget/:id` - Get single transaction
+- `POST /api/budget` - Create transaction
+- `PUT /api/budget/:id` - Update transaction
+- `DELETE /api/budget/:id` - Delete transaction
 
-Connect with the community! Feel free to ask questions, report issues, and meet new people that already use Horizon UI!
+### API Service Layer
+Located in `src/services/`:
+- `api.ts` - Base API configuration and helper functions
+- `budgetService.ts` - Budget-specific API calls
 
-💬 [Join the #HorizonUI Discord Community!](https://discord.gg/f6tEKFBd4m)
+Example usage:
+```typescript
+import { getAllTransactions, createTransaction } from 'services/budgetService';
 
-### Copyright and license
+// Fetch all transactions
+const response = await getAllTransactions();
+if (response.success) {
+  console.log(response.data);
+}
 
-⭐️ [Copyright 2023 Horizon UI ](https://www.horizon-ui.com/?ref=readme-horizon-tailwind-react-ts)
+// Create new transaction
+const newTransaction = {
+  source: 'Monthly Salary',
+  category: 'Income',
+  purpose: 'Primary income',
+  dueDate: '01',
+  amount: 75000
+};
+await createTransaction(newTransaction);
+```
 
-📄 [Horizon UI License](https://www.simmmple.com/licenses?ref=readme-horizon-tailwind-react-ts)
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start development server |
+| `npm run build` | Create production build |
+| `npm test` | Run test suite |
+| `npm run eject` | Eject from Create React App (irreversible) |
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REACT_APP_API_URL` | Backend API URL | `http://localhost:9000` |
+
+## Color Theme
+
+### Brand Colors
+- **Primary**: `#18B7BE` (Cyan)
+- **Secondary**: `#178CA4` (Teal)
+- **Dark**: `#072A40` (Navy)
+
+### Gradients
+- Profile gradient: `linear-gradient(135deg, #18B7BE 0%, #178CA4 50%, #072A40 100%)`
+
+## Troubleshooting
+
+### API Connection Issues
+
+**Problem**: Cannot connect to backend API
+
+**Solutions**:
+1. Ensure backend server is running on port 9000
+2. Check `.env` file has correct `REACT_APP_API_URL`
+3. Verify CORS is enabled on backend
+4. Check browser console for network errors
+
+### Build Errors
+
+**Problem**: TypeScript compilation errors
+
+**Solutions**:
+1. Delete `node_modules` and reinstall: `rm -rf node_modules && npm install`
+2. Clear TypeScript cache: `rm -rf node_modules/.cache`
+3. Check `tsconfig.json` for correct paths
+
+### Loading Spinner Never Stops
+
+**Problem**: Budget page shows loading forever
+
+**Solutions**:
+1. Open browser console to check for API errors
+2. Verify backend is running: `curl http://localhost:9000/health`
+3. Check if Firebase credentials are configured in backend
+4. Seed database: `cd ../server && npm run seed:budget`
+
+## Development Tips
+
+### Adding New API Endpoints
+
+1. Add types to service file:
+```typescript
+export interface NewType {
+  id: string;
+  name: string;
+}
+```
+
+2. Create service function:
+```typescript
+export const getNewData = async (): Promise<ApiResponse<NewType[]>> => {
+  return apiCall<NewType[]>('/api/new-endpoint');
+};
+```
+
+3. Use in component:
+```typescript
+const [data, setData] = useState<NewType[]>([]);
+
+useEffect(() => {
+  const fetchData = async () => {
+    const response = await getNewData();
+    if (response.success && response.data) {
+      setData(response.data);
+    }
+  };
+  fetchData();
+}, []);
+```
+
+### Adding shadcn/ui Components
+
+```bash
+npx shadcn@latest add <component-name>
+```
+
+Example:
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add dialog
+```
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Performance
+
+- Code splitting with React.lazy
+- Image optimization
+- Tailwind CSS purging in production
+- React 19 concurrent features
+
+## Credits
+
+Built on top of [Horizon UI](https://horizon-ui.com/horizon-tailwind-react-ts) - Tailwind CSS React Admin Dashboard Template
+
+## License
+
+ISC

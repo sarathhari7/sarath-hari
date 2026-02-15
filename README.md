@@ -88,7 +88,7 @@ From the root directory:
 npm start
 ```
 
-This will start both the backend server (port 5000) and the frontend React app (port 3000).
+This will start both the backend server (port 9000) and the frontend React app (port 9001).
 
 ### Option 2: Run servers separately
 
@@ -106,7 +106,7 @@ npm start
 
 ## API Endpoints
 
-The backend API runs on `http://localhost:5000`
+The backend API runs on `http://localhost:9000`
 
 ### Todos Endpoints
 
@@ -157,9 +157,9 @@ Sarath Hari/
 
 Once both servers are running:
 
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend API: [http://localhost:5000](http://localhost:5000)
-- Health Check: [http://localhost:5000/health](http://localhost:5000/health)
+- Frontend: [http://localhost:9001](http://localhost:9001)
+- Backend API: [http://localhost:9000](http://localhost:9000)
+- Health Check: [http://localhost:9000/health](http://localhost:9000/health)
 
 Navigate to the Todos page from the sidebar to start managing your todos!
 
@@ -181,7 +181,7 @@ This uses nodemon for the backend to auto-restart on file changes.
 - Verify the private key is properly formatted with `\n` for line breaks
 
 ### Port Conflicts
-- If port 5000 or 3000 is already in use, you can change them:
+- If port 9000 or 3000 is already in use, you can change them:
   - Backend: Edit `PORT` in `server/.env`
   - Frontend: Create a `.env` file in the client folder with `PORT=3001`
 

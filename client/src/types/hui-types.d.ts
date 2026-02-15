@@ -12,5 +12,7 @@ declare global {
 		icon: JSX.Element | string;
 		path: string;
 		secondary?: boolean;
+		children?: RoutesType[];
+		hidden?: boolean;
 	}
 }

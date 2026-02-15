@@ -6,8 +6,10 @@ import { BsArrowBarUp } from "react-icons/bs";
 import { FiSearch } from "react-icons/fi";
 import { RiMoonFill, RiSunFill } from "react-icons/ri";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { MdCalendarToday } from "react-icons/md";
+import { MdCalendarToday, MdAccountBalanceWallet, MdCheckCircle, MdSettings } from "react-icons/md";
 import MiniCalendar from "components/calendar/MiniCalendar";
+import { getUpcomingNotificationData, NotificationData } from "services/notificationData";
+import { Spinner } from "components/ui/spinner";
 
 const Navbar = (props: {
   onOpenSidenav: () => void;
@@ -16,9 +18,63 @@ const Navbar = (props: {
 }) => {
   const { onOpenSidenav, brandText } = props;
   const [darkmode, setDarkmode] = React.useState(false);
+  const [notifications, setNotifications] = React.useState<NotificationData[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoadingNotifications(true);
+      const response = await getUpcomingNotificationData();
+      if (response.success && response.data) {
+        setNotifications(response.data);
+      }
+      setLoadingNotifications(false);
+    };
+
+    fetchNotifications();
+    // Refresh notifications every 5 minutes
+    const interval = setInterval(fetchNotifications, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'from-red-400 to-red-600';
+      case 'medium':
+        return 'from-yellow-400 to-yellow-600';
+      case 'low':
+        return 'from-green-400 to-green-600';
+      default:
+        return 'from-brandLinear to-brand-500';
+    }
+  };
+
+  const getSourceIcon = (sourceType: string) => {
+    switch (sourceType) {
+      case 'budget':
+        return <MdAccountBalanceWallet />;
+      case 'todo':
+        return <MdCheckCircle />;
+      default:
+        return <BsArrowBarUp />;
+    }
+  };
+
+  const formatDueDate = (date: Date | string) => {
+    const d = new Date(date);
+    const now = new Date();
+    const diffTime = d.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays < 7) return `In ${diffDays} days`;
+    return d.toLocaleDateString();
+  };
 
   return (
-    <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
+    <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#2626264d]">
       <div className="ml-[6px]">
         <div className="h-6 w-[224px] pt-1">
           <a
@@ -68,49 +124,78 @@ const Navbar = (props: {
         {/* start Notification */}
         <Dropdown
           button={
-            <p className="cursor-pointer">
+            <p className="cursor-pointer relative">
               <IoMdNotificationsOutline className="h-4 w-4 text-gray-600 dark:text-white" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] text-white">
+                  {notifications.length > 9 ? '9+' : notifications.length}
+                </span>
+              )}
             </p>
           }
           animation="origin-[65%_0%] md:origin-top-right transition-all duration-300 ease-in-out"
           children={
-            <div className="flex w-[360px] flex-col gap-3 rounded-[20px] bg-white p-4 shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none sm:w-[460px]">
-              <div className="flex items-center justify-between">
+            <div className="flex w-[360px] flex-col gap-3 rounded-[20px] bg-white p-4 shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none sm:w-[460px] max-h-[500px] overflow-y-auto">
+              <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-navy-700 pb-2">
                 <p className="text-base font-bold text-navy-700 dark:text-white">
-                  Notification
+                  Upcoming Notifications
                 </p>
-                <p className="text-sm font-bold text-navy-700 dark:text-white">
-                  Mark all read
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Next 7 days
+                  </p>
+                  <Link to="/admin/notifications">
+                    <button className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-navy-600 transition-colors">
+                      <MdSettings className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    </button>
+                  </Link>
+                </div>
               </div>
 
-              <button className="flex w-full items-center">
-                <div className="flex h-full w-[85px] items-center justify-center rounded-xl bg-gradient-to-b from-brandLinear to-brand-500 py-4 text-2xl text-white">
-                  <BsArrowBarUp />
+              {loadingNotifications ? (
+                <div className="flex items-center justify-center py-8">
+                  <Spinner size="md" />
                 </div>
-                <div className="ml-2 flex h-full w-full flex-col justify-center rounded-lg px-1 text-sm">
-                  <p className="mb-1 text-left text-base font-bold text-gray-900 dark:text-white">
-                    New Update Available
-                  </p>
-                  <p className="font-base text-left text-xs text-gray-900 dark:text-white">
-                    A new update for your dashboard is available!
-                  </p>
+              ) : notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <IoMdNotificationsOutline className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">No upcoming notifications</p>
                 </div>
-              </button>
+              ) : (
+                notifications.map((notification) => (
+                  <button key={notification.id} className="flex w-full items-center hover:bg-gray-50 dark:hover:bg-navy-600 rounded-lg p-2 transition-colors">
+                    <div className={`flex h-full w-[70px] items-center justify-center rounded-xl bg-gradient-to-b ${getPriorityColor(notification.priority)} py-4 text-2xl text-white flex-shrink-0`}>
+                      {getSourceIcon(notification.sourceType)}
+                    </div>
+                    <div className="ml-3 flex h-full w-full flex-col justify-center text-left">
+                      <p className="mb-1 text-sm font-bold text-gray-900 dark:text-white line-clamp-1">
+                        {notification.title}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {formatDueDate(notification.dueDate)}
+                        </p>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                          notification.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                          notification.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        }`}>
+                          {notification.priority}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
 
-              <button className="flex w-full items-center">
-                <div className="flex h-full w-[85px] items-center justify-center rounded-xl bg-gradient-to-b from-brandLinear to-brand-500 py-4 text-2xl text-white">
-                  <BsArrowBarUp />
-                </div>
-                <div className="ml-2 flex h-full w-full flex-col justify-center rounded-lg px-1 text-sm">
-                  <p className="mb-1 text-left text-base font-bold text-gray-900 dark:text-white">
-                    New Update Available
-                  </p>
-                  <p className="font-base text-left text-xs text-gray-900 dark:text-white">
-                    A new update for your dashboard is available!
-                  </p>
-                </div>
-              </button>
+              {/* View All Button */}
+              <div className="border-t pt-3 mt-2">
+                <Link to="/admin/all-notifications">
+                  <button className="w-full py-2 px-4 text-sm font-medium text-brand-500 hover:bg-gray-50 dark:hover:bg-navy-600 rounded-lg transition-colors">
+                    View All Notifications
+                  </button>
+                </Link>
+              </div>
             </div>
           }
           classNames={"py-2 top-4 -left-[230px] md:-left-[440px] w-max"}

@@ -1,13 +1,16 @@
 {
   "name": "todo-server",
   "version": "1.0.0",
-  "description": "Node.js backend with Firebase for Todo app",
+  "description": "Node.js backend with Firebase for Personal Dashboard (Todo & Budget tracking)",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "seed:budget": "node src/scripts/seedBudget.js",
+    "add": "node src/scripts/addTransaction.js",
+    "test:db": "node test-db.js"
   },
-  "keywords": ["node", "firebase", "express", "todo"],
+  "keywords": ["node", "firebase", "express", "todo", "budget"],
   "author": "",
   "license": "ISC",
   "dependencies": {

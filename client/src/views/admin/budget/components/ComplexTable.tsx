@@ -2,6 +2,17 @@ import React from "react";
 import CardMenu from "components/card/CardMenu";
 import Card from "components/card";
 import Progress from "components/progress";
+import AddTransactionDialog from "./AddTransactionDialog";
+import DeleteTransactionDialog from "./DeleteTransactionDialog";
+import MonthPicker from "components/monthPicker/MonthPicker";
+import { MdDelete } from "react-icons/md";
+import { useMonth } from "../contexts/MonthContext";
+import {
+  getMonthTransactions,
+  deleteMonthTransaction,
+  deleteTemplateFromMonth,
+  MonthlyTransaction
+} from "services/budget";
 
 import {
   createColumnHelper,
@@ -12,36 +23,68 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-type RowObj = {
-  source: string;
-  category: 'Income' | 'Expense' | 'Savings';
-  purpose: string;
-  target?: number;
-  currentAmount?: number;
-  stepupDate?: string;
-  stepupAmount?: number;
-  dueDate: string;
-  expectedAmount?: number;
-  amount: number;
-};
-
-const columnHelper = createColumnHelper<RowObj>();
+const columnHelper = createColumnHelper<MonthlyTransaction>();
 
 export default function ComplexTable(props: {
-  tableData: any;
   viewMode: 'current' | 'final';
   setViewMode: (mode: 'current' | 'final') => void;
 }) {
-  const { tableData, viewMode, setViewMode } = props;
+  const { viewMode, setViewMode } = props;
+  const { monthKey, monthName, isPastMonth } = useMonth();
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [data, setData] = React.useState<MonthlyTransaction[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [transactionToDelete, setTransactionToDelete] = React.useState<MonthlyTransaction | null>(null);
 
   const today = new Date().getDate();
 
-  const [data, setData] = React.useState(() => [...tableData]);
+  // Fetch transactions when month changes
+  const fetchData = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getMonthTransactions(monthKey);
+      if (response.success && response.data) {
+        setData(response.data);
+      } else {
+        setData([]);
+        console.error('Failed to fetch transactions:', response.error);
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [monthKey]);
 
   React.useEffect(() => {
-    setData(tableData);
-  }, [tableData]);
+    fetchData();
+  }, [fetchData]);
+
+  const handleDeleteClick = (transaction: MonthlyTransaction) => {
+    setTransactionToDelete(transaction);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async (deleteScope: 'month-only' | 'from-month-onwards') => {
+    if (!transactionToDelete) return;
+
+    try {
+      if (deleteScope === 'month-only') {
+        await deleteMonthTransaction(monthKey, transactionToDelete.id!);
+      } else {
+        if (transactionToDelete.templateId) {
+          await deleteTemplateFromMonth(transactionToDelete.templateId, monthKey);
+        }
+      }
+      await fetchData();
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('An error occurred while deleting the transaction');
+    }
+  };
 
   const columns = [
     columnHelper.accessor("source", {
@@ -202,6 +245,27 @@ export default function ComplexTable(props: {
         );
       },
     }),
+    // Actions column
+    columnHelper.display({
+      id: "actions",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">ACTIONS</p>
+      ),
+      cell: (info) => {
+        const row = info.row.original;
+        if (!row.id) return null;
+
+        return (
+          <button
+            onClick={() => handleDeleteClick(row)}
+            className="inline-flex items-center justify-center rounded-md p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+            title="Delete transaction"
+          >
+            <MdDelete className="h-5 w-5" />
+          </button>
+        );
+      },
+    }),
   ];
 
   const table = useReactTable({
@@ -222,7 +286,7 @@ export default function ComplexTable(props: {
     let totalExpense = 0;
     let totalSavings = 0;
 
-    tableData.forEach((row: RowObj) => {
+    data.forEach((row) => {
       const isPast = parseInt(row.dueDate) <= today;
       const shouldInclude = viewMode === 'final' || isPast;
 
@@ -246,36 +310,46 @@ export default function ComplexTable(props: {
   return (
     <Card extra={"w-full h-full px-6 pb-6 sm:overflow-x-auto"}>
       <div className="relative flex items-center justify-between pt-4">
-        <div className="text-xl font-bold text-navy-700 dark:text-white">
+        <div className="text-xl font-bold text-navy-700 dark:text-white whitespace-nowrap">
           Budget Transactions
         </div>
-        <CardMenu />
+        <div className="flex items-center gap-3">
+          {/* Month Picker */}
+          <MonthPicker />
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-navy-700 dark:text-white">
+              Current
+            </span>
+            <button
+              onClick={() => setViewMode(viewMode === 'current' ? 'final' : 'current')}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                viewMode === 'final' ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  viewMode === 'final' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm font-medium text-navy-700 dark:text-white">
+              Final
+            </span>
+          </div>
+          <AddTransactionDialog onSuccess={fetchData} />
+          <CardMenu />
+        </div>
       </div>
 
-      {/* View Mode Toggle */}
-      <div className="mt-4 flex items-center gap-3">
-        <span className="text-sm font-medium text-navy-700 dark:text-white">
-          Current
-        </span>
-        <button
-          onClick={() => setViewMode(viewMode === 'current' ? 'final' : 'current')}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-            viewMode === 'final' ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-600'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              viewMode === 'final' ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
-        <span className="text-sm font-medium text-navy-700 dark:text-white">
-          Final
-        </span>
-      </div>
-
-      <div className="mt-6 overflow-x-scroll xl:overflow-x-hidden">
-        <table className="w-full">
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Loading transactions...</div>
+        </div>
+      ) : (
+        <div className="mt-6 overflow-x-scroll xl:overflow-x-hidden">
+          <table className="w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="!border-px !border-gray-400">
@@ -360,6 +434,20 @@ export default function ComplexTable(props: {
           </tbody>
         </table>
       </div>
+      )}
+
+      {/* Delete Transaction Dialog */}
+      {transactionToDelete && (
+        <DeleteTransactionDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          transaction={transactionToDelete}
+          monthKey={monthKey}
+          monthName={monthName}
+          isPastMonth={isPastMonth}
+          onDelete={handleDeleteConfirm}
+        />
+      )}
     </Card>
   );
 }

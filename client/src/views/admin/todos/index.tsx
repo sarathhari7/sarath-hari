@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
 import Card from "components/card";
-import { MdAdd, MdDelete, MdEdit, MdCheckCircle, MdRadioButtonUnchecked } from "react-icons/md";
-import TaskCard from "views/admin/default/components/TaskCard";
-
-interface Todo {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  completed: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { MdAdd, MdDelete, MdEdit, MdCheckCircle, MdRadioButtonUnchecked, MdArchive } from "react-icons/md";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "components/ui/accordion";
+import {
+  Todo,
+  getAllTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo as deleteTodoService,
+  toggleTodoComplete,
+} from "services/todo";
 
 const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -25,21 +22,13 @@ const Todos = () => {
     priority: "medium"
   });
 
-  const API_URL = "http://localhost:5000/api/todos";
-
   // Fetch all todos
   const fetchTodos = async () => {
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      if (data.success) {
-        setTodos(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching todos:", error);
-    } finally {
-      setLoading(false);
+    const response = await getAllTodos();
+    if (response.success && response.data) {
+      setTodos(response.data);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -49,43 +38,24 @@ const Todos = () => {
   // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const url = editingTodo ? `${API_URL}/${editingTodo.id}` : API_URL;
-      const method = editingTodo ? "PUT" : "POST";
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      });
+    const response = editingTodo
+      ? await updateTodo(editingTodo.id, formData)
+      : await createTodo(formData);
 
-      const data = await response.json();
-      if (data.success) {
-        fetchTodos();
-        setShowAddModal(false);
-        setEditingTodo(null);
-        setFormData({ title: "", description: "", priority: "medium" });
-      }
-    } catch (error) {
-      console.error("Error saving todo:", error);
+    if (response.success) {
+      fetchTodos();
+      setShowAddModal(false);
+      setEditingTodo(null);
+      setFormData({ title: "", description: "", priority: "medium" });
     }
   };
 
   // Toggle todo completion
   const toggleComplete = async (todo: Todo) => {
-    try {
-      const response = await fetch(`${API_URL}/${todo.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: !todo.completed })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        fetchTodos();
-      }
-    } catch (error) {
-      console.error("Error updating todo:", error);
+    const response = await toggleTodoComplete(todo.id, todo.completed);
+    if (response.success) {
+      fetchTodos();
     }
   };
 
@@ -93,14 +63,9 @@ const Todos = () => {
   const deleteTodo = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this todo?")) return;
 
-    try {
-      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      const data = await response.json();
-      if (data.success) {
-        fetchTodos();
-      }
-    } catch (error) {
-      console.error("Error deleting todo:", error);
+    const response = await deleteTodoService(id);
+    if (response.success) {
+      fetchTodos();
     }
   };
 
@@ -139,6 +104,78 @@ const Todos = () => {
     );
   }
 
+  // Separate active and archived todos
+  const activeTodos = todos.filter(todo => !todo.completed);
+  const archivedTodos = todos.filter(todo => todo.completed);
+
+  const renderTodoCard = (todo: Todo) => (
+    <Card key={todo.id} extra="p-5">
+      <div className="flex flex-col gap-3">
+        {/* Header with priority and actions */}
+        <div className="flex items-start justify-between">
+          <span className={`text-sm font-semibold uppercase ${getPriorityColor(todo.priority)}`}>
+            {todo.priority}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => openEditModal(todo)}
+              className="text-gray-600 hover:text-brand-500 dark:text-gray-400"
+            >
+              <MdEdit className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => deleteTodo(todo.id)}
+              className="text-gray-600 hover:text-red-500 dark:text-gray-400"
+            >
+              <MdDelete className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Title with completion checkbox */}
+        <div className="flex items-start gap-3">
+          <button onClick={() => toggleComplete(todo)} className="mt-1">
+            {todo.completed ? (
+              <MdCheckCircle className="h-6 w-6 text-green-500" />
+            ) : (
+              <MdRadioButtonUnchecked className="h-6 w-6 text-gray-400" />
+            )}
+          </button>
+          <div className="flex-1">
+            <h3
+              className={`text-lg font-bold ${
+                todo.completed
+                  ? "text-gray-400 line-through dark:text-gray-600"
+                  : "text-navy-700 dark:text-white"
+              }`}
+            >
+              {todo.title}
+            </h3>
+            {todo.description && (
+              <p className={`mt-1 text-sm ${
+                todo.completed
+                  ? "text-gray-400 line-through dark:text-gray-600"
+                  : "text-gray-600 dark:text-gray-400"
+              }`}>
+                {todo.description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Status badge */}
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <span className="rounded-lg bg-gray-100 px-2 py-1 dark:bg-navy-700">
+            {todo.status}
+          </span>
+          <span>
+            {new Date(todo.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <div className="mt-5">
       {/* Header */}
@@ -155,77 +192,42 @@ const Todos = () => {
         </button>
       </div>
 
-      {/* Quick Tasks Section */}
-      <div className="mb-5">
-        <TaskCard />
-      </div>
+      {/* Active Todos Grid */}
+      {activeTodos.length > 0 && (
+        <>
+          <h2 className="mb-4 text-xl font-bold text-navy-700 dark:text-white">
+            Active Todos ({activeTodos.length})
+          </h2>
+          <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {activeTodos.map(renderTodoCard)}
+          </div>
+        </>
+      )}
 
-      {/* Todos Grid */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {todos.map((todo) => (
-          <Card key={todo.id} extra="p-5">
-            <div className="flex flex-col gap-3">
-              {/* Header with priority and actions */}
-              <div className="flex items-start justify-between">
-                <span className={`text-sm font-semibold uppercase ${getPriorityColor(todo.priority)}`}>
-                  {todo.priority}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openEditModal(todo)}
-                    className="text-gray-600 hover:text-brand-500 dark:text-gray-400"
-                  >
-                    <MdEdit className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => deleteTodo(todo.id)}
-                    className="text-gray-600 hover:text-red-500 dark:text-gray-400"
-                  >
-                    <MdDelete className="h-5 w-5" />
-                  </button>
+      {/* Archived Todos Accordion */}
+      <Card extra="p-5 mb-5">
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="archive">
+            <AccordionTrigger className="text-navy-700 dark:text-white hover:no-underline">
+              <div className="flex items-center gap-2">
+                <MdArchive className="h-5 w-5" />
+                <span className="text-lg font-bold">Archive ({archivedTodos.length})</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              {archivedTodos.length > 0 ? (
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 pt-4">
+                  {archivedTodos.map(renderTodoCard)}
                 </div>
-              </div>
-
-              {/* Title with completion checkbox */}
-              <div className="flex items-start gap-3">
-                <button onClick={() => toggleComplete(todo)} className="mt-1">
-                  {todo.completed ? (
-                    <MdCheckCircle className="h-6 w-6 text-green-500" />
-                  ) : (
-                    <MdRadioButtonUnchecked className="h-6 w-6 text-gray-400" />
-                  )}
-                </button>
-                <div className="flex-1">
-                  <h3
-                    className={`text-lg font-bold ${
-                      todo.completed
-                        ? "text-gray-400 line-through dark:text-gray-600"
-                        : "text-navy-700 dark:text-white"
-                    }`}
-                  >
-                    {todo.title}
-                  </h3>
-                  {todo.description && (
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      {todo.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Status badge */}
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span className="rounded-lg bg-gray-100 px-2 py-1 dark:bg-navy-700">
-                  {todo.status}
-                </span>
-                <span>
-                  {new Date(todo.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+              ) : (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  No archived todos yet. Completed todos will appear here.
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </Card>
 
       {/* Empty state */}
       {todos.length === 0 && (
@@ -238,8 +240,8 @@ const Todos = () => {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <Card extra="w-full max-w-md p-6 m-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: '#00000099' }}>
+          <Card extra="w-full max-w-md p-6 m-4" style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)' }}>
             <h2 className="mb-5 text-2xl font-bold text-navy-700 dark:text-white">
               {editingTodo ? "Edit Todo" : "Add New Todo"}
             </h2>
